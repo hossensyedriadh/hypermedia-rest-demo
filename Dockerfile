@@ -10,4 +10,4 @@ COPY --from=builder /app/target/rest-demo-1.0.0-SNAPSHOT.jar /application.jar
 ENV PORT 8080
 EXPOSE 8080
 
-CMD ["java","-Dserver.port=${PORT}", "-Duser.timezone=BDT", "-jar", "/application.jar"]
+CMD ["java","-Dserver.port=${PORT}", "-Dspring.profiles.active=prod", "-jar", "/application.jar"]
