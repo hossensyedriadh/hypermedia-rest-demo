@@ -11,12 +11,14 @@ import io.github.hossensyedriadh.restdemo.configuration.authentication.service.B
 import io.github.hossensyedriadh.restdemo.entity.User;
 import io.github.hossensyedriadh.restdemo.exception.InvalidCredentialsException;
 import io.github.hossensyedriadh.restdemo.exception.InvalidRefreshTokenException;
+import io.github.hossensyedriadh.restdemo.exception.ResourceException;
 import io.github.hossensyedriadh.restdemo.exception.UserAccountLockedException;
 import io.github.hossensyedriadh.restdemo.repository.jpa.UserRepository;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -96,8 +98,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if (this.passwordEncoder.matches(bearerTokenRequest.getPassphrase(), userDetails.getPassword())) {
             try {
+                this.accessTokenCache.refresh(userDetails.getUsername());
                 if (this.accessTokenCache.asMap().containsKey(userDetails.getUsername())) {
-                    this.accessTokenCache.refresh(userDetails.getUsername());
                     String existingToken = this.accessTokenCache.get(userDetails.getUsername());
 
                     if (this.bearerAuthenticationService.isAccessTokenValid(existingToken, userDetails)) {
@@ -112,38 +114,44 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                                 ZoneId.systemDefault())));
 
                         return new BearerTokenResponse(existingToken, this.accessTokenType, refreshToken);
+                    } else {
+                        return this.generateResponse(userDetails);
                     }
                 } else {
-                    if (this.userRepository.findById(userDetails.getUsername()).isPresent()) {
-                        User user = this.userRepository.findById(userDetails.getUsername()).get();
-
-                        Map<String, String> claims = new HashMap<>();
-                        claims.put("username", userDetails.getUsername());
-                        claims.put("authority", user.getAuthority().toString());
-
-                        String accessToken = this.bearerAuthenticationService.generateAccessToken(claims);
-                        String refreshToken = this.bearerAuthenticationService.getRefreshToken(user.getUsername(), claims);
-
-                        this.accessTokenCache.invalidate(userDetails.getUsername());
-                        this.accessTokenCache.put(userDetails.getUsername(), accessToken);
-                        this.accessTokenCache.refresh(userDetails.getUsername());
-
-                        this.httpServletResponse.addHeader(HttpHeaders.EXPIRES, String.valueOf(LocalDateTime.ofInstant(
-                                Objects.requireNonNull(this.bearerAuthenticationService.jwtDecoder().decode(accessToken).getExpiresAt()),
-                                ZoneId.systemDefault())));
-
-                        return new BearerTokenResponse(accessToken, this.accessTokenType, refreshToken);
-                    } else {
-                        throw new UsernameNotFoundException("User not found: " + userDetails.getUsername());
-                    }
+                    return this.generateResponse(userDetails);
                 }
             } catch (ExecutionException e) {
-                throw new RuntimeException(e);
+                throw new ResourceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, httpServletRequest);
             }
+        } else {
+            this.httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            throw new InvalidCredentialsException("Invalid credentials", httpServletRequest);
         }
+    }
 
-        this.httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        throw new InvalidCredentialsException("Invalid credentials", httpServletRequest);
+    private BearerTokenResponse generateResponse(UserDetails userDetails) {
+        if (this.userRepository.findById(userDetails.getUsername()).isPresent()) {
+            User user = this.userRepository.findById(userDetails.getUsername()).get();
+
+            Map<String, String> claims = new HashMap<>();
+            claims.put("username", userDetails.getUsername());
+            claims.put("authority", user.getAuthority().toString());
+
+            String accessToken = this.bearerAuthenticationService.generateAccessToken(claims);
+            String refreshToken = this.bearerAuthenticationService.getRefreshToken(user.getUsername(), claims);
+
+            this.accessTokenCache.invalidate(userDetails.getUsername());
+            this.accessTokenCache.put(userDetails.getUsername(), accessToken);
+            this.accessTokenCache.refresh(userDetails.getUsername());
+
+            this.httpServletResponse.addHeader(HttpHeaders.EXPIRES, String.valueOf(LocalDateTime.ofInstant(
+                    Objects.requireNonNull(this.bearerAuthenticationService.jwtDecoder().decode(accessToken).getExpiresAt()),
+                    ZoneId.systemDefault())));
+
+            return new BearerTokenResponse(accessToken, this.accessTokenType, refreshToken);
+        } else {
+            throw new UsernameNotFoundException("User not found: " + userDetails.getUsername());
+        }
     }
 
     @Override

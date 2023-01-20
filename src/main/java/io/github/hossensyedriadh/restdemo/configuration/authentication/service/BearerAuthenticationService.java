@@ -121,7 +121,7 @@ public class BearerAuthenticationService {
             List<RefreshToken> tokens = refreshTokenRepository.findAll().stream()
                     .filter(token -> token.getForUser().getUsername().equals(decodedJwt.getClaimAsString("username"))).toList();
 
-            if (tokens.size() == 1 && decodedJwt != null) {
+            if (tokens.size() == 1) {
                 RefreshToken token = tokens.get(0);
 
                 if (token.getToken().equals(decodedJwt.getTokenValue())) {
