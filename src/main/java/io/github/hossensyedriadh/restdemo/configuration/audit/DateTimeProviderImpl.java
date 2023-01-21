@@ -4,6 +4,7 @@ import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalField;
@@ -27,7 +28,7 @@ public class DateTimeProviderImpl implements DateTimeProvider {
 
             @Override
             public long getLong(TemporalField field) {
-                return Instant.EPOCH.getEpochSecond();
+                return Instant.now(Clock.systemDefaultZone()).getEpochSecond();
             }
         });
     }

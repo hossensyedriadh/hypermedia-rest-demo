@@ -18,7 +18,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,7 +44,7 @@ public class PostJpaTests {
     public void should_persist_post() {
         User user = this.testEntityManager.persistAndFlush(new User("test", "password", true, Authority.ROLE_USER));
 
-        String pid = this.testEntityManager.persistAndGetId(new Post(UUID.randomUUID().toString(), "some content", LocalDateTime.now(),
+        String pid = this.testEntityManager.persistAndGetId(new Post(UUID.randomUUID().toString(), "some content", Instant.now(Clock.systemDefaultZone()).getEpochSecond(),
                 user, null, new LinkedHashSet<>()), String.class);
 
         assert this.postRepository.findById(pid).isPresent();
@@ -55,7 +56,7 @@ public class PostJpaTests {
     public void should_update_post() {
         User user = this.testEntityManager.persistAndFlush(new User("test", "password", true, Authority.ROLE_USER));
 
-        String id = this.testEntityManager.persistAndGetId(new Post(UUID.randomUUID().toString(), "some content", LocalDateTime.now(),
+        String id = this.testEntityManager.persistAndGetId(new Post(UUID.randomUUID().toString(), "some content", Instant.now(Clock.systemDefaultZone()).getEpochSecond(),
                 user, null, new LinkedHashSet<>()), String.class);
 
         Post post = this.postRepository.findById(id).get();
@@ -74,7 +75,7 @@ public class PostJpaTests {
     public void should_delete_post() {
         User user = this.testEntityManager.persistAndFlush(new User("test", "password", true, Authority.ROLE_USER));
 
-        String id = this.testEntityManager.persistAndGetId(new Post(UUID.randomUUID().toString(), "some content", LocalDateTime.now(),
+        String id = this.testEntityManager.persistAndGetId(new Post(UUID.randomUUID().toString(), "some content", Instant.now(Clock.systemDefaultZone()).getEpochSecond(),
                 user, null, new LinkedHashSet<>()), String.class);
 
         Optional<Post> post = this.postRepository.findById(id);

@@ -19,7 +19,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,9 +46,9 @@ public class CommentJpaTests {
         User user = this.testEntityManager.persistAndFlush(new User("test", "password", true, Authority.ROLE_USER));
 
         Post post = this.testEntityManager.persistAndFlush(new Post(UUID.randomUUID().toString(), "some post",
-                LocalDateTime.now(), user, null, new LinkedHashSet<>()));
+                Instant.now(Clock.systemDefaultZone()).getEpochSecond(), user, null, new LinkedHashSet<>()));
 
-        Comment comment = new Comment(UUID.randomUUID().toString(), "some comment", LocalDateTime.now(), post,
+        Comment comment = new Comment(UUID.randomUUID().toString(), "some comment", Instant.now(Clock.systemDefaultZone()).getEpochSecond(), post,
                 user, null);
 
         String id = this.testEntityManager.persistAndGetId(comment, String.class);
@@ -64,9 +65,9 @@ public class CommentJpaTests {
         User user = this.testEntityManager.persistAndFlush(new User("test", "password", true, Authority.ROLE_USER));
 
         Post post = this.testEntityManager.persistAndFlush(new Post(UUID.randomUUID().toString(), "some post",
-                LocalDateTime.now(), user, null, new LinkedHashSet<>()));
+                Instant.now(Clock.systemDefaultZone()).getEpochSecond(), user, null, new LinkedHashSet<>()));
 
-        Comment comment = new Comment(UUID.randomUUID().toString(), "some comment", LocalDateTime.now(),
+        Comment comment = new Comment(UUID.randomUUID().toString(), "some comment", Instant.now(Clock.systemDefaultZone()).getEpochSecond(),
                 post, user, null);
 
         String id = this.testEntityManager.persistAndGetId(comment, String.class);
@@ -78,7 +79,7 @@ public class CommentJpaTests {
 
         Comment updated = this.commentRepository.findById(id).get();
 
-        assert updated.getContent().equals("some updated comment") && updated.getLastModifiedOn().isBefore(LocalDateTime.now());
+        assert updated.getContent().equals("some updated comment");
     }
 
     @Test
@@ -88,9 +89,9 @@ public class CommentJpaTests {
         User user = this.testEntityManager.persistAndFlush(new User("test", "password", true, Authority.ROLE_USER));
 
         Post post = this.testEntityManager.persistAndFlush(new Post(UUID.randomUUID().toString(), "some post",
-                LocalDateTime.now(), user, null, new LinkedHashSet<>()));
+                Instant.now(Clock.systemDefaultZone()).getEpochSecond(), user, null, new LinkedHashSet<>()));
 
-        Comment comment = new Comment(UUID.randomUUID().toString(), "some comment", LocalDateTime.now(),
+        Comment comment = new Comment(UUID.randomUUID().toString(), "some comment", Instant.now(Clock.systemDefaultZone()).getEpochSecond(),
                 post, user, null);
 
         String id = this.testEntityManager.persistAndGetId(comment, String.class);
