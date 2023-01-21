@@ -13,7 +13,6 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @NoArgsConstructor
@@ -41,7 +40,7 @@ public final class Comment extends RepresentationModel<Comment> implements Seria
     @Setter(AccessLevel.NONE)
     @Column(name = "comment_on", updatable = false, nullable = false)
     @CreatedDate
-    private ZonedDateTime commentOn;
+    private Long commentOn;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ManyToOne(targetEntity = Post.class, cascade = {CascadeType.REFRESH}, optional = false)
@@ -58,7 +57,7 @@ public final class Comment extends RepresentationModel<Comment> implements Seria
     @Setter(AccessLevel.NONE)
     @Column(name = "updated_on", insertable = false)
     @LastModifiedDate
-    private ZonedDateTime lastModifiedOn;
+    private Long lastModifiedOn;
 
     @PrePersist
     private void init() {
