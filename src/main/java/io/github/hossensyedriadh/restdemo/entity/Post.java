@@ -14,7 +14,6 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -43,7 +42,7 @@ public final class Post extends RepresentationModel<Post> implements Serializabl
     @Setter(AccessLevel.NONE)
     @Column(name = "posted_on", updatable = false, nullable = false)
     @CreatedDate
-    private LocalDateTime postedOn;
+    private Long postedOn;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY, cascade = {CascadeType.REFRESH}, optional = false)
@@ -55,7 +54,7 @@ public final class Post extends RepresentationModel<Post> implements Serializabl
     @Setter(AccessLevel.NONE)
     @Column(name = "updated_on", insertable = false)
     @LastModifiedDate
-    private LocalDateTime lastModifiedOn;
+    private Long lastModifiedOn;
 
     @JsonIgnore
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = {CascadeType.REFRESH, CascadeType.REMOVE}, orphanRemoval = true)

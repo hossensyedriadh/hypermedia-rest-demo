@@ -4,9 +4,9 @@ import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalField;
 import java.util.Optional;
 
 @Component
@@ -19,6 +19,16 @@ public class DateTimeProviderImpl implements DateTimeProvider {
     @Override
     @NonNull
     public Optional<TemporalAccessor> getNow() {
-        return Optional.of(LocalDateTime.now(ZoneId.systemDefault()));
+        return Optional.of(new TemporalAccessor() {
+            @Override
+            public boolean isSupported(TemporalField field) {
+                return true;
+            }
+
+            @Override
+            public long getLong(TemporalField field) {
+                return Instant.EPOCH.getEpochSecond();
+            }
+        });
     }
 }
